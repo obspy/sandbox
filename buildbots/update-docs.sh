@@ -1,71 +1,99 @@
 #!/bin/bash
 
-CURDIR=/opt/obspy
-PYTHONDIR=$CURDIR/python
-SRCDIR=$CURDIR/python/src
-TRUNK=$SRCDIR/obspy
+# test command line arguments
+if [ ! $# -eq 1 ] ; then
+    echo "Usage: $0 master|stable"
+    exit 1
+fi
+case $1 in
+    master)
+        TODO=master
+        DOCSSUFFIX=""
+        ;;
+    stable)
+        TODO=stable
+        DOCSSUFFIX="_stable"
+        ;;
+    *) echo "Usage: $0 master|stable"; exit 1 ;;
+esac
+
+
+BASEDIR=$HOME/update-docs/$TODO
+LOGDIR=$BASEDIR/logs
+PYTHONDIR=$BASEDIR/python
+PYTHONTGZ=$HOME/python.tgz
+SRCDIR=$BASEDIR/python/src
+GITDIR=$SRCDIR/obspy
 PYTHON=$PYTHONDIR/bin/python
 FTPUSER=obspy
 FTPHOST=obspy.org
 FTPPASSWD=fillinpasswordhere
+PIDFILE=$BASEDIR/${TODO}.pid
 
 
-cd $CURDIR
+mkdir -p $BASEDIR
+mkdir -p $LOGDIR
 
 
 # check if script is alread running
-test -f $CURDIR/update-docs.pid && exit
-
+test -f $PIDFILE && exit
 # otherwise create pid file
-echo $! > $CURDIR/update-docs.pid
+echo $! > $PIDFILE
 
 # remove existing python directory
 rm -rf $PYTHONDIR
-
 # unpack python.tgz
+cd $BASEDIR
+ln -s $PYTHONTGZ python.tgz
 tar -xzf python.tgz
 
-# update svn
-#svn co https://svn.obspy.org/trunk -q $TRUNK &> $CURDIR/logs/svn.log
-mkdir -p $SRCDIR
-wget -O $SRCDIR/obspy.tgz https://github.com/obspy/obspy/tarball/master &> $CURDIR/logs/wget-git.log
-tar -xz -C $SRCDIR -f $SRCDIR/obspy.tgz &> $CURDIR/logs/wget-git.log
-mv $SRCDIR/obspy-obspy-* $TRUNK &> $CURDIR/logs/wget-git.log
+# clone github repository
+git clone https://github.com/obspy/obspy.git $GITDIR &> $LOGDIR/git.log
+
+# checkout the state we want to work on (last stable tag / master)
+case $TODO in
+    master)
+        git checkout master
+        ;;
+    stable)
+        STABLE=`git tag | tail -1`
+        git checkout $STABLE
+        ;;
+esac
 
 # activate environment
 source $PYTHONDIR/bin/activate
 
 # run develop.sh
-cd $TRUNK/misc/scripts
-$TRUNK/misc/scripts/develop.sh &> $CURDIR/logs/develop.log
-cd $CURDIR
+cd $GITDIR/misc/scripts
+./develop.sh &> $LOGDIR/develop.log
 
 # make docs
-cd $TRUNK/misc/docs
+cd $GITDIR/misc/docs
 make clean
-make pep8 &> $CURDIR/logs/make_pep8.log
-make coverage &> $CURDIR/logs/make_coverage.log
-make html &> $CURDIR/logs/make_html.log
-# make linkcheck &> $CURDIR/logs/make_linkcheck.log
-# make doctest &> $CURDIR/logs/make_doctests.log
-cd $CURDIR
+make pep8 &> $LOGDIR/make_pep8.log
+make coverage &> $LOGDIR/make_coverage.log
+make html &> $LOGDIR/make_html.log
+# make linkcheck &> $LOGDIR/make_linkcheck.log
+# make doctest &> $LOGDIR/make_doctests.log
 
 # pack build directory
-tar -czf $CURDIR/html.tgz -C $TRUNK/misc/docs/build/html .
+tar -czf $BASEDIR/html${DOCSSUFFIX}.tgz -C $GITDIR/misc/docs/build/html .
 
 # copy html.tgz to ObsPy server
-ftp -n -v $FTPHOST &> $CURDIR/logs/ftp.log << EOT
+cd $BASEDIR
+ftp -n -v $FTPHOST &> $LOGDIR/ftp.log << EOT
 ascii
 user $FTPUSER $FTPPASSWD
 prompt
-put html.tgz
-delete docs.tgz
-rename html.tgz docs.tgz
+put html${DOCSSUFFIX}.tgz
+delete docs${DOCSSUFFIX}.tgz
+rename html${DOCSSUFFIX}.tgz docs${DOCSSUFFIX}.tgz
 bye
 EOT
 
 # report
-obspy-runtests -r --all &> $CURDIR/logs/runtest.log
+obspy-runtests -r --all &> $LOGDIR/runtest.log
 
 # delete pid file
-rm -f $CURDIR/update-docs.pid
+rm -f $PIDFILE
