@@ -61,8 +61,8 @@ case $TODO in
         ;;
 esac
 
-# activate environment
-source $PYTHONDIR/bin/activate
+# use unpacked python
+export PATH=$PYTHONDIR/bin:$PATH
 
 # run develop.sh
 cd $GITDIR/misc/scripts
