@@ -1,8 +1,10 @@
 #!/bin/bash
 
+USAGE="Usage: $0 master|stable"
+
 # test command line arguments
 if [ ! $# -eq 1 ] ; then
-    echo "Usage: $0 master|stable"
+    echo $USAGE
     exit 1
 fi
 case $1 in
@@ -14,7 +16,10 @@ case $1 in
         TODO=stable
         DOCSSUFFIX="_stable"
         ;;
-    *) echo "Usage: $0 master|stable"; exit 1 ;;
+    *)
+        echo $USAGE
+        exit 1
+        ;;
 esac
 
 
