@@ -278,7 +278,6 @@ def __toOrigin(parser, origin_el, public_id):
     :return: A ObsPy :class:`~obspy.core.event.Origin` object.
     """
     global CURRENT_TYPE
-    print CURRENT_TYPE
 
     origin = Origin()
     origin.resource_id = "%s/origin/1" % public_id
@@ -333,31 +332,6 @@ def __toOrigin(parser, origin_el, public_id):
         origin.earth_model_id = "%s/earth_model/%s" % (RESOURCE_ROOT,
             earth_mod)
 
-    # Parse th origin uncertainty. Rather verbose but should cover all cases.
-    #pref_desc = parser.xpath2obj("originUncertainty/preferredDescription",
-                                 #origin_el, str)
-    #hor_uncert = parser.xpath2obj("originUncertainty/horizontalUncertainty",
-                                  #origin_el, float)
-    #min_hor_uncert = parser.xpath2obj(
-        #"originUncertainty/minHorizontalUncertainty", origin_el, float)
-    #max_hor_uncert = parser.xpath2obj(
-        #"originUncertainty/maxHorizontalUncertainty", origin_el, float)
-    #azi_max_hor_uncert = parser.xpath2obj(
-        #"originUncertainty/azimuthMaxHorizontalUncertainty", origin_el, float)
-
-    #origin_uncert = {}
-    #if pref_desc is not None:
-        #origin_uncert["preferred_description"] = pref_desc
-    #if hor_uncert is not None:
-        #origin_uncert["horizontal_uncertainty"] = hor_uncert
-    #if min_hor_uncert is not None:
-        #origin_uncert["min_horizontal_uncertainty"] = min_hor_uncert
-    #if max_hor_uncert is not None:
-        #origin_uncert["max_horizontal_uncertainty"] = max_hor_uncert
-    #if azi_max_hor_uncert is not None:
-        #origin_uncert["azimuth_max_horizontal_uncertainty"] = \
-        #azi_max_hor_uncert
-
     if (origin_latitude_error is None or origin_longitude_error is None) and \
         CURRENT_TYPE not in ["seiscomp3", "toni"]:
         print "AAAAAAAAAAAAA"
@@ -384,10 +358,6 @@ def __toOrigin(parser, origin_el, public_id):
             pass
         else:
             raise Exception
-    else:
-        print "Lat. Error: %s, Lng. Error: %s" % \
-            (str(origin_latitude_error),
-            str(origin_longitude_error))
 
     # Parse the OriginQuality if applicable.
     if not origin_el.xpath("originQuality"):
@@ -483,7 +453,7 @@ def __toMagnitude(parser, magnitude_el, public_id):
     return mag
 
 
-def __toStationMagnitude(parser, stat_mag_el, public_id):
+def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
     """
     Parses a given station magnitude etree element.
 
@@ -491,11 +461,13 @@ def __toStationMagnitude(parser, stat_mag_el, public_id):
     :param parser: Open XMLParser object.
     :type stat_mag_el: etree.element
     :param stat_mag_el: station magnitude element to be parsed.
-    :return: A ObsPy :class:`~obspy.core.event.StationMagnitude` object.
+    return: A ObsPy :class:`~obspy.core.event.StationMagnitude` object.
     """
     global CURRENT_TYPE
     mag = StationMagnitude()
     mag.mag, mag.mag_errors = __toFloatQuantity(parser, stat_mag_el, "mag")
+    mag.resource_id = "%s/station_magnitude/%i" % (RESOURCE_ROOT,
+        stat_mag_count)
     # Use the waveform id to store station and channel(s) in the form
     # station.[channel_1, channel_2] or station.channel in the case only one
     # channel has been used.
@@ -505,6 +477,7 @@ def __toStationMagnitude(parser, stat_mag_el, public_id):
     if len(channels) > 1:
         channels = '%s' % channels
     station = fix_station_name(parser.xpath2obj('station', stat_mag_el))
+    location = parser.xpath2obj('location', stat_mag_el, str) or ""
     mag.waveform_id = WaveformStreamID()
     # Map some station names.
     if station in STATION_DICT:
@@ -517,6 +490,7 @@ def __toStationMagnitude(parser, stat_mag_el, public_id):
 
     mag.waveform_id.channel_code = channels
     mag.waveform_id.network_code = network
+    mag.waveform_id.location_code = location
     weight_comment = Comment(
         text="Weight from the SeisHub event file: %.3f" %
         parser.xpath2obj("weight", stat_mag_el, float))
@@ -585,11 +559,14 @@ def __toPick(parser, pick_el, evaluation_mode, public_id, pick_number):
         station = STATION_DICT[station]
     if not network:
         network = NETWORK_DICT[station]
+
+    location = waveform.get("locationCode") or ""
+    channel = waveform.get("channelCode") or ""
     pick.waveform_id = WaveformStreamID(
                                 network_code=network,
                                 station_code=station,
-                                channel_code=waveform.get("channelCode"),
-                                location_code=waveform.get("locationCode"))
+                                channel_code=channel,
+                                location_code=location)
     pick.time, pick.time_errors = __toTimeQuantity(parser, pick_el, "time")
     pick.phase_hint = parser.xpath2obj('phaseHint', pick_el, str)
     onset = parser.xpath2obj('onset', pick_el)
@@ -753,9 +730,9 @@ def readSeishubEventFile(filename):
         mag.origin_id = event.origins[0].resource_id
 
     # Parse the station magnitudes.
-    for stat_magnitude_el in parser.xpath("stationMagnitude"):
+    for _i, stat_magnitude_el in enumerate(parser.xpath("stationMagnitude")):
         stat_magnitude = __toStationMagnitude(parser, stat_magnitude_el,
-            public_id)
+            public_id, _i + 1)
         event.station_magnitudes.append(stat_magnitude)
 
     for mag in event.station_magnitudes:
@@ -766,21 +743,8 @@ def readSeishubEventFile(filename):
         weight = None
         try:
             weight = parser.xpath2obj("weight", stat_mag, float)
-            print weight
-
-            ################
-            # DEBUGGING START
-            import sys
-            __o_std__ = sys.stdout
-            sys.stdout = sys.__stdout__
-            from IPython.core.debugger import Tracer
-            Tracer(colors="Linux")()
-            sys.stdout = __o_std__
-            # DEBUGGING END
-            ################
         except:
             pass
-
         if weight:
             contrib.weight = weight
         contrib.station_magnitude_id = stat_mag.resource_id
