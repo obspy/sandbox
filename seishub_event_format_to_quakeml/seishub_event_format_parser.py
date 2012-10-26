@@ -491,10 +491,6 @@ def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
     mag.waveform_id.channel_code = channels
     mag.waveform_id.network_code = network
     mag.waveform_id.location_code = location
-    weight_comment = Comment(
-        text="Weight from the SeisHub event file: %.3f" %
-        parser.xpath2obj("weight", stat_mag_el, float))
-    mag.comments.append(weight_comment)
     return mag
 
 
