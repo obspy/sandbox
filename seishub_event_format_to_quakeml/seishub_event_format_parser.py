@@ -738,14 +738,14 @@ def readSeishubEventFile(filename):
     for mag in event.station_magnitudes:
         mag.origin_id = event.origins[0].resource_id
 
-    for stat_mag in event.station_magnitudes:
+    for _i, stat_mag in enumerate(event.station_magnitudes):
         contrib = StationMagnitudeContribution()
         weight = None
-        try:
-            weight = parser.xpath2obj("weight", stat_mag, float)
-        except:
-            pass
-        if weight:
+        # The order of station magnitude objects is the same as in the xml
+        # file.
+        weight = parser.xpath2obj("weight",
+            parser.xpath("stationMagnitude")[_i], float)
+        if weight is not None:
             contrib.weight = weight
         contrib.station_magnitude_id = stat_mag.resource_id
         event.magnitudes[0].station_magnitude_contributions.append(contrib)
