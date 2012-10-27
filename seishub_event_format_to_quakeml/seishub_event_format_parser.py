@@ -466,8 +466,7 @@ def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
     global CURRENT_TYPE
     mag = StationMagnitude()
     mag.mag, mag.mag_errors = __toFloatQuantity(parser, stat_mag_el, "mag")
-    mag.resource_id = "%s/station_magnitude/%i" % (RESOURCE_ROOT,
-        stat_mag_count)
+    mag.resource_id = "%s/station_magnitude/%i" % (public_id, stat_mag_count)
     # Use the waveform id to store station and channel(s) in the form
     # station.[channel_1, channel_2] or station.channel in the case only one
     # channel has been used.
@@ -654,7 +653,7 @@ def readSeishubEventFile(filename):
     # A Seishub event just specifies a single event so Catalog information is
     # not really given.
     catalog = Catalog()
-    catalog.resource_id = "%s/catalog" % RESOURCE_ROOT
+    catalog.resource_id = "%s/catalog" % public_id
 
     # Create new Event object.
     public_id = parser.xpath('event_id/value')[0].text
