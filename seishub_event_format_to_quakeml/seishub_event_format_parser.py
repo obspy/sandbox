@@ -483,9 +483,19 @@ def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
         station = STATION_DICT[station]
     mag.waveform_id.station_code = station
 
-    network = parser.xpath2obj('station', stat_mag_el)
-    if not network:
+    network = parser.xpath2obj('network', stat_mag_el)
+    if network is None:
+        # network id is not stored in original stationMagnitude, try to find it
+        # in a pick with same station name
+        for waveform in parser.xpath("pick/waveform"):
+            if waveform.attrib.get("stationCode") == station:
+                network = waveform.attrib.get("networkCode")
+                break
+    if network is None:
         network = NETWORK_DICT[station]
+    if network is None:
+        print "AAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHH"
+        raise Exception
 
     mag.waveform_id.channel_code = channels
     mag.waveform_id.network_code = network
