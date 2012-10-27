@@ -650,14 +650,14 @@ def readSeishubEventFile(filename):
 
     # Just init the parser, the SeisHub event file format has no namespaces.
     parser = XMLParser(filename)
+    # Create new Event object.
+    public_id = parser.xpath('event_id/value')[0].text
+    public_id = "%s/%s" % (RESOURCE_ROOT, public_id)
+
     # A Seishub event just specifies a single event so Catalog information is
     # not really given.
     catalog = Catalog()
     catalog.resource_id = "%s/catalog" % public_id
-
-    # Create new Event object.
-    public_id = parser.xpath('event_id/value')[0].text
-    public_id = "%s/%s" % (RESOURCE_ROOT, public_id)
 
     # Read the event_type tag.
     account = parser.xpath2obj('event_type/account', parser, str)
