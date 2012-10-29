@@ -10,7 +10,7 @@ Seishub event file format converter.
     GNU Lesser General Public License, Version 3
     (http://www.gnu.org/copyleft/lesser.html)
 """
-from obspy.core import UTCDateTime
+from obspy.core import UTCDateTime, AttribDict
 from obspy.core.event import Catalog, Event, Origin, \
     Magnitude, StationMagnitude, Comment, Pick, WaveformStreamID, \
     OriginQuality, Arrival, FocalMechanism, NodalPlanes, NodalPlane, \
@@ -25,6 +25,8 @@ def fix_station_name(station):
 
 
 RESOURCE_ROOT = "smi:erdbeben-in-bayern.de"
+
+NAMESPACE = ("edb", "http://erdbeben-in-bayern.de/xmlns/0.1")
 
 STATION_DICT = {
     "MUN1": "UH2",
@@ -603,7 +605,8 @@ def __toPick(parser, pick_el, evaluation_mode, public_id, pick_number):
 
     pick_weight = parser.xpath2obj('weight', pick_el, int)
     if pick_weight is not None:
-        pick.comments.append(Comment("Pick Weight: %i" % pick_weight))
+        pick.extra = AttribDict()
+        pick.extra.weight = {'value': pick_weight, '_namespace': NAMESPACE}
     return pick
 
 
@@ -674,6 +677,8 @@ def readSeishubEventFile(filename):
     user = parser.xpath2obj('event_type/user', parser, str)
     global_evaluation_mode = parser.xpath2obj('event_type/value', parser, str)
     public = bool(parser.xpath2obj('event_type/public', parser, str))
+    if account is not None and account.lower() != "sysop":
+        public = False
     # The author will be stored in the CreationInfo object. This will be the
     # creation info of the event as well as on all picks.
     author = user
@@ -686,6 +691,10 @@ def readSeishubEventFile(filename):
     # Create the event object.
     event = Event(resource_id=public_id + "/event/1",
         creation_info=creation_info)
+    # If account is None or 'sysop' and public is true, write 'public in the
+    # comment, 'private' otherwise.
+    event.extra = AttribDict()
+    event.extra.public = {'value': public, '_namespace': NAMESPACE}
 
     event_type = parser.xpath2obj('type', parser, str)
     if event_type is not None:
@@ -693,13 +702,6 @@ def readSeishubEventFile(filename):
             event_type = "induced or triggered event"
         if event_type != "null":
             event.event_type = event_type
-
-    # If account is None or 'sysop' and public is true, write 'public in the
-    # comment, 'private' otherwise.
-    if public and (account is None or account.lower() == "sysop"):
-        event.comments.append(Comment("public"))
-    else:
-        event.comments.append(Comment("private"))
 
     # Parse the origins.
     origins = parser.xpath("origin")
