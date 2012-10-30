@@ -583,7 +583,7 @@ def __toPick(parser, pick_el, evaluation_mode, public_id, pick_number):
     if onset:
         pick.onset = onset.lower()
     # Evaluation mode of a pick is global in the SeisHub Event file format.
-    pick.evaluation_mode = evaluation_mode
+    #pick.evaluation_mode = evaluation_mode
     # The polarity needs to be mapped.
     polarity = parser.xpath2obj('polarity', pick_el)
     pol_map_dict = {'up': 'positive', 'positive': 'positive',
@@ -695,6 +695,7 @@ def readSeishubEventFile(filename):
     # comment, 'private' otherwise.
     event.extra = AttribDict()
     event.extra.public = {'value': public, '_namespace': NAMESPACE}
+    event.extra.evaluationMode = {'value': global_evaluation_mode, '_namespace': NAMESPACE}
 
     event_type = parser.xpath2obj('type', parser, str)
     if event_type is not None:
