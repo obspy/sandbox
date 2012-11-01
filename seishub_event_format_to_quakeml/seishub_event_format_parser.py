@@ -282,7 +282,7 @@ def __toOrigin(parser, origin_el, public_id):
     global CURRENT_TYPE
 
     origin = Origin()
-    origin.resource_id = "%s/origin/1" % public_id
+    origin.resource_id = "/".join([RESOURCE_ROOT, "origin", public_id, "1"])
 
     # I guess setting the program used as the method id is fine.
     origin.method_id = "%s/location_method/%s" % (RESOURCE_ROOT,
@@ -443,7 +443,7 @@ def __toMagnitude(parser, magnitude_el, public_id):
     """
     global CURRENT_TYPE
     mag = Magnitude()
-    mag.resource_id = "%s/magnitude/1" % public_id
+    mag.resource_id = "/".join([RESOURCE_ROOT, "magnitude", public_id, "1"])
     mag.mag, mag.mag_errors = __toFloatQuantity(parser, magnitude_el, "mag")
     mag.magnitude_type = parser.xpath2obj("type", magnitude_el)
     mag.station_count = parser.xpath2obj("stationCount", magnitude_el, int)
@@ -468,7 +468,7 @@ def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
     global CURRENT_TYPE
     mag = StationMagnitude()
     mag.mag, mag.mag_errors = __toFloatQuantity(parser, stat_mag_el, "mag")
-    mag.resource_id = "%s/station_magnitude/%i" % (public_id, stat_mag_count)
+    mag.resource_id = "/".join([RESOURCE_ROOT, "station_magnitude", public_id, str(stat_mag_count)])
     # Use the waveform id to store station and channel(s) in the form
     # station.[channel_1, channel_2] or station.channel in the case only one
     # channel has been used.
@@ -510,7 +510,7 @@ def __toFocalMechanism(parser, focmec_el, public_id, focmec_number):
     """
     global CURRENT_TYPE
     focmec = FocalMechanism()
-    focmec.resource_id = "%s/focal_mechanism/%i" % (public_id, focmec_number)
+    focmec.resource_id = "/".join([RESOURCE_ROOT, "focal_mechanism", public_id, str(focmec_number)])
     focmec.method_id = "%s/focal_mechanism_method/%s" % (RESOURCE_ROOT,
         parser.xpath2obj('program', focmec_el))
     if str(focmec.method_id).lower().endswith("none"):
@@ -550,7 +550,7 @@ def __toPick(parser, pick_el, evaluation_mode, public_id, pick_number):
     """
     """
     pick = Pick()
-    pick.resource_id = "%s/pick/%i" % (public_id, pick_number)
+    pick.resource_id = "/".join([RESOURCE_ROOT, "pick", public_id, str(pick_number)])
 
     # Raise a warnings if there is a phase delay
     phase_delay = parser.xpath2obj("phase_delay", pick_el, float)
@@ -615,8 +615,8 @@ def __toArrival(parser, pick_el, evaluation_mode, public_id, pick_number):
     """
     global CURRENT_TYPE
     arrival = Arrival()
-    arrival.resource_id = "%s/arrival/%i" % (public_id, pick_number)
-    arrival.pick_id = "%s/pick/%i" % (public_id, pick_number)
+    arrival.resource_id = "/".join([RESOURCE_ROOT, "arrival", public_id, str(pick_number)])
+    arrival.pick_id = "/".join([RESOURCE_ROOT, "pick", public_id, str(pick_number)])
     arrival.phase = parser.xpath2obj('phaseHint', pick_el)
     arrival.azimuth = parser.xpath2obj('azimuth/value', pick_el, float)
     arrival.distance = parser.xpath2obj('epi_dist/value', pick_el, float)
@@ -665,12 +665,11 @@ def readSeishubEventFile(filename):
     parser = XMLParser(filename)
     # Create new Event object.
     public_id = parser.xpath('event_id/value')[0].text
-    public_id = "%s/%s" % (RESOURCE_ROOT, public_id)
 
     # A Seishub event just specifies a single event so Catalog information is
     # not really given.
     catalog = Catalog()
-    catalog.resource_id = "%s/catalog" % public_id
+    catalog.resource_id = "/".join([RESOURCE_ROOT, "catalog", public_id])
 
     # Read the event_type tag.
     account = parser.xpath2obj('event_type/account', parser, str)
@@ -689,7 +688,7 @@ def readSeishubEventFile(filename):
         "agency_uri": "%s/agency" % RESOURCE_ROOT}
 
     # Create the event object.
-    event = Event(resource_id=public_id + "/event/1",
+    event = Event(resource_id="/".join([RESOURCE_ROOT, "event", public_id, "1"]),
         creation_info=creation_info)
     # If account is None or 'sysop' and public is true, write 'public in the
     # comment, 'private' otherwise.
