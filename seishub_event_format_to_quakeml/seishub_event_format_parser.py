@@ -624,7 +624,7 @@ def __toArrival(parser, pick_el, evaluation_mode, public_id, pick_number):
     if takeoff_angle and not math.isnan(takeoff_angle):
         arrival.takeoff_angle = takeoff_angle
     arrival.time_residual = parser.xpath2obj('phase_res/value', pick_el, float)
-    arrival.time_weight = parser.xpath2obj('weight', pick_el, float)
+    arrival.time_weight = parser.xpath2obj('phase_weight/value', pick_el, float)
     return arrival
 
 
