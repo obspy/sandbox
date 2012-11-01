@@ -499,7 +499,8 @@ def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
         print "AAAAAAAAAAAAAAAAAAAAAAAAAAHHHHHHHHHHHHHHHHHHH"
         raise Exception
 
-    mag.waveform_id.channel_code = channels
+    if "," not in channels:
+        mag.waveform_id.channel_code = channels
     mag.waveform_id.network_code = network
     mag.waveform_id.location_code = location
     return mag
