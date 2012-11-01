@@ -24,7 +24,7 @@ def fix_station_name(station):
     return station.rstrip("_")
 
 
-RESOURCE_ROOT = "smi:erdbeben-in-bayern.de"
+RESOURCE_ROOT = "smi:de.erdbeben-in-bayern"
 
 NAMESPACE = ("edb", "http://erdbeben-in-bayern.de/xmlns/0.1")
 
