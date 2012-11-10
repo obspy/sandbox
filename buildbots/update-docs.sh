@@ -9,11 +9,9 @@ if [ ! $# -eq 1 ] ; then
 fi
 case $1 in
     master)
-        TODO=master
         DOCSSUFFIX=""
         ;;
     stable)
-        TODO=stable
         DOCSSUFFIX="_stable"
         ;;
     *)
@@ -23,40 +21,41 @@ case $1 in
 esac
 
 
-BASEDIR=$HOME/update-docs/$TODO
-LOGDIR=$BASEDIR/logs
-PYTHONDIR=$BASEDIR/python
-PYTHONTGZ=$HOME/python.tgz
-SRCDIR=$PYTHONDIR/src
-GITDIR=$SRCDIR/obspy
-PYTHON=$PYTHONDIR/bin/python
+BASEDIR=$HOME/update-docs
+LOG=$BASEDIR/log.txt
+TGZ=$HOME/update-docs.tgz
+GITDIR=$BASEDIR/src/obspy
 FTPUSER=obspy
 FTPHOST=obspy.org
 FTPPASSWD=fillinpasswordhere
-PIDFILE=$BASEDIR/${TODO}.pid
+PIDFILE=$BASEDIR/update-docs.pid
 
-
+# clean directory
+rm -rf $BASEDIR
 mkdir -p $BASEDIR
-mkdir -p $LOGDIR
 
+# from now on all output to log file
+exec > $LOG 2>&1
 
 # check if script is alread running
-test -f $PIDFILE && exit
+test -f $PIDFILE && echo "doc building aborted: pid file exists" && exit 1
 # otherwise create pid file
 echo $! > $PIDFILE
-
-# remove existing python directory
-rm -rf $PYTHONDIR
-# unpack python.tgz
-cd $BASEDIR
-ln -s $PYTHONTGZ python.tgz
-tar -xzf python.tgz
+# set trap to remove pid file after exit of script
+function cleanup {
+rm -f $PIDFILE
+}
+trap cleanup EXIT
+# unpack basedir
+cd $HOME
+tar -xzf $TGZ
 
 # clone github repository
-git clone https://github.com/obspy/obspy.git $GITDIR &> $LOGDIR/git.log
+git clone https://github.com/obspy/obspy.git $GITDIR
 
 # checkout the state we want to work on (last stable tag / master)
-case $TODO in
+cd $GITDIR
+case $1 in
     master)
         git checkout master
         ;;
@@ -67,27 +66,29 @@ case $TODO in
 esac
 
 # use unpacked python
-export PATH=$PYTHONDIR/bin:$PATH
+export PATH=$BASEDIR/bin:$PATH
 
 # run develop.sh
-cd $GITDIR/misc/scripts
-./develop.sh &> $LOGDIR/develop.log
+cd $GITDIR
+python setup.py develop -N -U --verbose
 
 # make docs
 cd $GITDIR/misc/docs
 make clean
-make pep8 &> $LOGDIR/make_pep8.log
-make coverage &> $LOGDIR/make_coverage.log
-make html &> $LOGDIR/make_html.log
-# make linkcheck &> $LOGDIR/make_linkcheck.log
-# make doctest &> $LOGDIR/make_doctests.log
+# works with pep8==0.6.1 but not pep8==1.3.3 (parts were refactored into an OO approach)
+make pep8
+# works with coverage==3.5 but not current coverage
+make coverage
+make html
+# make linkcheck
+# make doctest
 
 # pack build directory
 tar -czf $BASEDIR/html${DOCSSUFFIX}.tgz -C $GITDIR/misc/docs/build/html .
 
 # copy html.tgz to ObsPy server
 cd $BASEDIR
-ftp -n -v $FTPHOST &> $LOGDIR/ftp.log << EOT
+ftp -n -v $FTPHOST << EOT
 ascii
 user $FTPUSER $FTPPASSWD
 prompt
@@ -98,7 +99,5 @@ bye
 EOT
 
 # report
-obspy-runtests -r --all &> $LOGDIR/runtest.log
-
-# delete pid file
-rm -f $PIDFILE
+obspy-runtests -r --all
+exit 0
