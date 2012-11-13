@@ -15,13 +15,13 @@ MPLCONFIGDIR=$BASEDIR/.matplotlib
 rm -rf $BASEDIR
 mkdir -p $BASEDIR
 
-# all output to log
-exec > $LOG 2>&1
-
 # check if script is alread running
 test -f $PIDFILE && echo "schroot test runner aborted: pid file exists" && exit 1
 # otherwise create pid file
 echo $! > $PIDFILE
+
+# all output to log
+exec > $LOG 2>&1
 
 # end schroot session at end of script and remove pid file
 function cleanup {

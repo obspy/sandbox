@@ -34,13 +34,14 @@ PIDFILE=$BASEDIR/update-docs.pid
 rm -rf $BASEDIR
 mkdir -p $BASEDIR
 
-# from now on all output to log file
-exec > $LOG 2>&1
-
 # check if script is alread running
 test -f $PIDFILE && echo "doc building aborted: pid file exists" && exit 1
 # otherwise create pid file
 echo $! > $PIDFILE
+
+# from now on all output to log file
+exec > $LOG 2>&1
+
 # set trap to remove pid file after exit of script
 function cleanup {
 rm -f $PIDFILE
@@ -84,6 +85,7 @@ make html
 # make doctest
 
 # pack build directory
+ln $LOG $GITDIR/misc/docs/build/html
 tar -czf $BASEDIR/html${DOCSSUFFIX}.tgz -C $GITDIR/misc/docs/build/html .
 
 # copy html.tgz to ObsPy server
