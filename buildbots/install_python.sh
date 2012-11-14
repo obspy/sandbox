@@ -69,3 +69,4 @@ pip install pep8==0.6.1
 pip install Jinja2==2.6
 pip install docutils==0.8.1
 pip install coverage==3.5
+pip install flake8
