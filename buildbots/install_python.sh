@@ -79,6 +79,7 @@ cd $SRCDIR/matplotlib-1.2.0
 python setup.py build && python setup.py install --prefix=$TARGET
 cd $SRCDIR/basemap-1.0.5/geos-3.3.3
 ./configure --prefix=$TARGET && make && make install
+export GEOS_DIR=$TARGET
 cd $SRCDIR/basemap-1.0.5
 python setup.py install --prefix=$TARGET
 
