@@ -15,7 +15,7 @@ fi
 #######################
 
 export PKG_CONFIG_PATH=$TARGET/lib/pkgconfig
-export LD_LIBRARY_PATH=$TARGET/lib:$LD_LIBRARY_PATH
+export LD_RUN_PATH=$TARGET/lib:$LD_RUN_PATH
 export PATH=$TARGET/bin:$PATH
 SRCDIR=$TARGET/src
 mkdir -p $SRCDIR
