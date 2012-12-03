@@ -89,6 +89,7 @@ pip install lxml
 pip install ipython
 pip install suds
 pip install hcluster
+pip install pyproj
 pip install http://downloads.sourceforge.net/project/mlpy/mlpy%203.5.0/mlpy-3.5.0.tar.gz
 
 # for building ObsPy docs:
