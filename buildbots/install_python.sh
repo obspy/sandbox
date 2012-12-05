@@ -87,6 +87,8 @@ python setup.py install --prefix=$TARGET
 # more ObsPy dependencies and useful stuff
 pip install sqlalchemy
 pip install lxml
+pip install pysqlite
+pip install readline
 pip install ipython
 pip install suds
 pip install hcluster
@@ -101,3 +103,14 @@ pip install Jinja2==2.6
 pip install docutils==0.8.1
 pip install coverage==3.5
 pip install flake8
+
+# for running SeisHub:
+pip install Markdown==2.0.3
+pip install Cheetah==2.4.4
+pip install pyasn1==0.1.3
+pip install pycrypto==2.6
+pip install pyOpenSSL==0.13
+pip install psycopg2==2.4.5
+pip install zope.interface==4.0.1
+pip install Twisted==12.1.0
+pip install pyparsing
