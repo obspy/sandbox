@@ -83,6 +83,7 @@ make coverage
 make html
 # make linkcheck
 # make doctest
+make c_coverage
 
 # pack build directory
 ln $LOG $GITDIR/misc/docs/build/html
