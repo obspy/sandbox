@@ -576,6 +576,10 @@ def __toPick(parser, pick_el, evaluation_mode, public_id, pick_number):
                                 channel_code=channel,
                                 location_code=location)
     pick.time, pick.time_errors = __toTimeQuantity(parser, pick_el, "time")
+    # Picks without time are not quakeml conform
+    if pick.time is None:
+        print "Pick has no time and is ignored: %s %s" % (public_id, station)
+        return None
     pick.phase_hint = parser.xpath2obj('phaseHint', pick_el, str)
     onset = parser.xpath2obj('onset', pick_el)
     # Fixing bad and old typo ...
@@ -720,6 +724,8 @@ def readSeishubEventFile(filename):
     for _i, pick_el in enumerate(parser.xpath("pick")):
         pick = __toPick(parser, pick_el, global_evaluation_mode, public_id,
                    _i + 1)
+        if pick is None:
+            continue
         event.picks.append(pick)
     # The arrival object gets the following things from the Seishub.pick
     # objects
