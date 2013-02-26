@@ -81,6 +81,7 @@ make pep8
 # works with coverage==3.5 but not current coverage
 make coverage
 make html
+make latexpdf
 # make linkcheck
 # make doctest
 make c_coverage
@@ -98,6 +99,7 @@ prompt
 put html${DOCSSUFFIX}.tgz
 delete docs${DOCSSUFFIX}.tgz
 rename html${DOCSSUFFIX}.tgz docs${DOCSSUFFIX}.tgz
+put $GITDIR/misc/docs/build/latex/ObsPyTutorial.pdf
 bye
 EOT
 
