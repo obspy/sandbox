@@ -71,7 +71,7 @@ export PATH=$BASEDIR/bin:$PATH
 
 # run develop.sh
 cd $GITDIR
-python setup.py develop -N -U --verbose
+$BASEDIR/bin/python setup.py develop -N -U --verbose
 
 # make docs
 cd $GITDIR/misc/docs
@@ -104,5 +104,5 @@ bye
 EOT
 
 # report
-obspy-runtests -r --all
+$BASEDIR/bin/obspy-runtests -r --all
 exit 0
