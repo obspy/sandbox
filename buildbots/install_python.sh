@@ -46,7 +46,8 @@ done
 
 # build basic Python
 cd $SRCDIR/Python-2.7.3
-./configure --enable-shared --prefix=$TARGET --enable-unicode=ucs4 && make && make install
+./configure --enable-shared --prefix=$TARGET --enable-unicode=ucs4 && make && make install || exit 1
+if [ `which python` != "$TARGET/bin/python" ]; then exit 1; fi
 cd $SRCDIR
 python distribute_setup.py
 easy_install pip
