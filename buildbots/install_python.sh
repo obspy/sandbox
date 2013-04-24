@@ -3,7 +3,7 @@
 # Parts depend on globally installed packages (gtk+, Qt, libxml, ...) in
 # certain version numbers (Debian Squeeze).
 
-TARGET=$HOME/local
+TARGET=$HOME/py274
 
 if [ -e "$TARGET" ]
 then
@@ -25,7 +25,7 @@ exec > $LOG 2>&1
 
 # download sources
 cd $SRCDIR
-wget 'http://www.python.org/ftp/python/2.7.3/Python-2.7.3.tgz'
+wget 'http://www.python.org/ftp/python/2.7.4/Python-2.7.4.tgz'
 wget 'http://nightly.ziade.org/distribute_setup.py'
 wget 'http://heanet.dl.sourceforge.net/project/numpy/NumPy/1.6.2/numpy-1.6.2.tar.gz'
 wget 'http://downloads.sourceforge.net/project/scipy/scipy/0.11.0/scipy-0.11.0.tar.gz'
@@ -45,7 +45,7 @@ do
 done
 
 # build basic Python
-cd $SRCDIR/Python-2.7.3
+cd $SRCDIR/Python-*
 ./configure --enable-shared --prefix=$TARGET --enable-unicode=ucs4 && make && make install || exit 1
 if [ `which python` != "$TARGET/bin/python" ]; then exit 1; fi
 cd $SRCDIR
@@ -54,35 +54,35 @@ easy_install pip
 pip install Cython
 
 # build NumPy and SciPy
-cd $SRCDIR/numpy-1.6.2
+cd $SRCDIR/numpy-*
 python setup.py build --fcompiler=gnu95 && python setup.py install --prefix=$TARGET
-cd $SRCDIR/scipy-0.11.0
+cd $SRCDIR/scipy-*
 python setup.py install --prefix=$TARGET
 
 # build GTK bindings (for matplotlib backend)
-cd $SRCDIR/gobject-introspection-0.10.8
+cd $SRCDIR/gobject-introspection-*
 ./configure --prefix=$TARGET && make && make install
-cd $SRCDIR/pycairo-1.8.10
+cd $SRCDIR/pycairo-*
 ./waf configure --prefix=$TARGET && ./waf build && ./waf install
-cd $SRCDIR/pygobject-2.21.5
+cd $SRCDIR/pygobject-*
 ./configure --prefix=$TARGET && make && make install
-cd $SRCDIR/pygtk-2.17.0
+cd $SRCDIR/pygtk-*
 ./configure --prefix=$TARGET && make && make install
 
 # build Qt bindings, PyQt and pyside (for matplotlib backend)
-cd $SRCDIR/sip-4.14.1
+cd $SRCDIR/sip-*
 python configure.py && make && make install
-cd $SRCDIR/PyQt-x11-gpl-4.9.5
+cd $SRCDIR/PyQt-x11-gpl-*
 echo 'yes' | python configure.py && make && make install
 pip install pyside
 
 # build matplotlib and basemap
-cd $SRCDIR/matplotlib-1.2.0
+cd $SRCDIR/matplotlib-*
 python setup.py build && python setup.py install --prefix=$TARGET
-cd $SRCDIR/basemap-1.0.5/geos-3.3.3
+cd $SRCDIR/basemap-*/geos-*
 ./configure --prefix=$TARGET && make && make install
 export GEOS_DIR=$TARGET
-cd $SRCDIR/basemap-1.0.5
+cd $SRCDIR/basemap-*
 python setup.py install --prefix=$TARGET
 
 # more ObsPy dependencies and useful stuff
