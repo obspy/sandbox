@@ -6,13 +6,7 @@ from seishub_event_format_parser import readSeishubEventFile
 
 def convert_and_validate(input_file, output_file):
     cat = readSeishubEventFile(input_file)
-    cat.write(output_file, format="quakeml")
-
-    ver = validate(output_file)
-    if ver is True:
-        return
-    else:
-        raise Exception
+    cat.write(output_file, format="quakeml", validate=True)
 
 
 if __name__ == "__main__":
@@ -21,6 +15,8 @@ if __name__ == "__main__":
         filename = os.path.join("./all_resources", filename)
         output_name = os.path.join("./converted_files",
             os.path.basename(filename))
+        if not output_name.endswith(".xml"):
+            output_name += ".xml"
         if os.path.exists(output_name):
             continue
         print "Converting file %s (%i of %i)" % (filename, _i + 1,
