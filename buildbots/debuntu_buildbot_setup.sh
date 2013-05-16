@@ -6,7 +6,7 @@ exit 1
 
 ARCHS="i386 amd64"
 DEBIANS="squeeze wheezy"
-UBUNTUS="lucid natty oneiric precise quantal"
+UBUNTUS="lucid natty oneiric precise quantal raring"
 
 # add testing to sources.list, we need a more recent debootstrap that knows
 # the more recent ubuntu releases...
@@ -140,6 +140,22 @@ sudo cat > /etc/schroot/chroot.d/quantal_amd64.conf << EOT
 [quantal_amd64]
 description=Ubuntu 12.10 Quantal Quetzal for amd64
 directory=/srv/chroot/quantal_amd64
+root-users=root
+type=directory
+users=obspy
+EOT
+sudo cat > /etc/schroot/chroot.d/raring_i386.conf << EOT
+[raring_i386]
+description=Ubuntu 13.04 Raring Ringtail for i386
+directory=/srv/chroot/raring_i386
+root-users=root
+type=directory
+users=obspy
+EOT
+sudo cat > /etc/schroot/chroot.d/raring_amd64.conf << EOT
+[raring_amd64]
+description=Ubuntu 13.04 Raring Ringtail for amd64
+directory=/srv/chroot/raring_amd64
 root-users=root
 type=directory
 users=obspy

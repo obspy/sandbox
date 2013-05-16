@@ -3,7 +3,7 @@
 # schroot environments have to be set up accordingly beforehand.
 # All dependencies for ObsPy have to be installed in the chroots.
 
-DEBUNTUS="squeeze wheezy lucid natty oneiric precise quantal"
+DEBUNTUS="squeeze wheezy lucid natty oneiric precise quantal raring"
 BASEDIR=/tmp/testrun
 GITDIR=$BASEDIR/git
 PYTHONDIR=$BASEDIR/python
