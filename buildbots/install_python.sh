@@ -29,8 +29,7 @@ wget 'http://www.python.org/ftp/python/2.7.5/Python-2.7.5.tgz'
 wget 'http://nightly.ziade.org/distribute_setup.py'
 wget 'http://heanet.dl.sourceforge.net/project/numpy/NumPy/1.7.1/numpy-1.7.1.tar.gz'
 wget 'http://downloads.sourceforge.net/project/scipy/scipy/0.12.0/scipy-0.12.0.tar.gz'
-wget 'http://downloads.sourceforge.net/project/matplotlib/matplotlib/matplotlib-1.2.1/matplotlib-1.2.1.tar.gz'
-wget 'http://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.6/basemap-1.0.6.tar.gz'
+wget 'http://downloads.sourceforge.net/project/matplotlib/matplotlib-toolkits/basemap-1.0.7/basemap-1.0.7.tar.gz'
 wget 'http://ftp.gnome.org/pub/gnome/sources/gobject-introspection/0.10/gobject-introspection-0.10.8.tar.bz2'
 wget 'http://www.cairographics.org/releases/py2cairo-1.8.10.tar.gz'
 wget 'http://ftp.acc.umu.se/pub/gnome/sources/pygobject/2.21/pygobject-2.21.5.tar.bz2'
@@ -77,8 +76,7 @@ echo 'yes' | python configure.py && make && make install
 pip install pyside
 
 # build matplotlib and basemap
-cd $SRCDIR/matplotlib-*
-python setup.py build && python setup.py install --prefix=$TARGET
+pip install https://github.com/matplotlib/matplotlib/archive/v1.3.x.zip
 cd $SRCDIR/basemap-*/geos-*
 ./configure --prefix=$TARGET && make && make install
 export GEOS_DIR=$TARGET
