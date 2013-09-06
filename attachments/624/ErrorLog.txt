@@ -1,0 +1,20 @@
+Processing infile: /home/rindra/VBoxShare/datageofon/2012/ZE/MS05/HHZ.D/ZE.MS05..HHZ.D.2012.273 outfile: /home/rindra/VBoxShare/datageofon/fetchdata/MS05/ZE.MS05..HHZ.D.2012.273
+
+RESPFILE: /home/rindra/VBoxShare/RESP/RESP.ZE.MS05..HHZ 
+
+ WARNING: no response found for NET=*,STA=*,LOCID=*,CHAN=*,DATE=2012,273
+Traceback (most recent call last):
+  File "./fetch-and-preprocess1.py", line 76, in <module>
+    st.simulate(paz_remove=None, pre_filt=(fl1, fl2, fl3, fl4), seedresp=seedresp,taper=True,taper_fraction=0.005)
+  File "/usr/lib/python2.7/dist-packages/obspy/core/stream.py", line 1763, in simulate
+    simulate_sensitivity=simulate_sensitivity, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/obspy/core/trace.py", line 1143, in simulate
+    simulate_sensitivity=simulate_sensitivity, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/obspy/signal/invsim.py", line 474, in seisSim
+    units=seedresp['units'], freq=True)
+  File "/usr/lib/python2.7/dist-packages/obspy/core/util/decorator.py", line 67, in echo_func
+    return func(*args, **kwargs)
+  File "/usr/lib/python2.7/dist-packages/obspy/signal/invsim.py", line 220, in evalresp
+    nfreqs, rfreqs, rvec = res[0].nfreqs, res[0].freqs, res[0].rvec
+ValueError: NULL pointer access
+
