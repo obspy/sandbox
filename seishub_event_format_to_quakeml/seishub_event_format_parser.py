@@ -445,6 +445,9 @@ def __toMagnitude(parser, magnitude_el, public_id):
     mag = Magnitude()
     mag.resource_id = "/".join([RESOURCE_ROOT, "magnitude", public_id, "1"])
     mag.mag, mag.mag_errors = __toFloatQuantity(parser, magnitude_el, "mag")
+    # obspyck used to write variance (instead of std) in magnitude error fields
+    if CURRENT_TYPE == "obspyck":
+        mag.mag_errors.uncertainty = math.sqrt(mag.mag_errors.uncertainty)
     mag.magnitude_type = parser.xpath2obj("type", magnitude_el)
     mag.station_count = parser.xpath2obj("stationCount", magnitude_el, int)
     mag.method_id = "%s/magnitude_method/%s" % (RESOURCE_ROOT,
