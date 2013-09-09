@@ -19,6 +19,7 @@ from obspy.core.util.xmlwrapper import XMLParser
 import os
 import math
 
+NOW = UTCDateTime()
 
 def fix_station_name(station):
     return station.rstrip("_")
@@ -693,7 +694,8 @@ def readSeishubEventFile(filename):
         author = CURRENT_TYPE
     creation_info = {"author": author,
         "agency_id": "Erdbebendienst Bayern",
-        "agency_uri": "%s/agency" % RESOURCE_ROOT}
+        "agency_uri": "%s/agency" % RESOURCE_ROOT,
+        "creation_time": NOW}
 
     # Create the event object.
     event = Event(resource_id="/".join([RESOURCE_ROOT, "event", public_id, "1"]),
