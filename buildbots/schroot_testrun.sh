@@ -3,6 +3,17 @@
 # schroot environments have to be set up accordingly beforehand.
 # All dependencies for ObsPy have to be installed in the chroots.
 
+GITFORK=obspy
+GITTARGET=master
+# Process command line arguments
+while getopts f:t: opt
+do
+   case "$opt" in
+      f) GITFORK=$OPTARG;;
+      t) GITTARGET=$OPTARG;;
+   esac
+done
+
 DEBUNTUS="squeeze wheezy lucid natty oneiric precise quantal raring"
 BASEDIR=/tmp/testrun
 GITDIR=$BASEDIR/git
@@ -34,8 +45,10 @@ rm -f $PIDFILE
 trap cleanup EXIT
 
 
-git clone https://github.com/obspy/obspy.git $GITDIR
+git clone https://github.com/${GITFORK}/obspy.git $GITDIR
 wget -O $VIRTUALENV_PY 'https://raw.github.com/pypa/virtualenv/master/virtualenv.py'
+cd $GITDIR
+git checkout $GITTARGET
 
 
 for DIST in $DEBUNTUS
@@ -44,7 +57,9 @@ do
     do
         DISTARCH=${DIST}_${ARCH}
         echo "#### $DISTARCH"
-        cd $GITDIR && git clean -fxd .
+        cd $GITDIR
+        git clean -fxd .
+        git checkout -- .
         rm $PYTHONDIR -rf
         rm $MPLCONFIGDIR -rf
         mkdir $MPLCONFIGDIR
@@ -54,8 +69,11 @@ do
 python $VIRTUALENV_PY --system-site-packages $PYTHONDIR
 cd $GITDIR
 export MPLCONFIGDIR=$MPLCONFIGDIR
+rm $MPLCONFIGDIR/fontList.cache
 $PYTHONDIR/bin/python setup.py develop -N -U --verbose
-$PYTHONDIR/bin/python $GITDIR/obspy/core/scripts/runtests.py --all -r -n $DISTARCH
+$PYTHONDIR/bin/python $GITDIR/obspy/core/scripts/runtests.py --no-flake8 --keep-images --all -r -n $DIST
+rm -rf /tmp/images_${DISTARCH}
+mv ${GITDIR}/obspy/imaging/tests/images/testrun /tmp/images_${DISTARCH}
 EOT
         schroot -f --end-session -c "$SCHROOT_SESSION" && SCHROOT_SESSION=""
     done
