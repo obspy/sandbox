@@ -698,7 +698,8 @@ def readSeishubEventFile(filename):
     account = parser.xpath2obj('event_type/account', parser, str)
     user = parser.xpath2obj('event_type/user', parser, str)
     global_evaluation_mode = parser.xpath2obj('event_type/value', parser, str)
-    public = bool(parser.xpath2obj('event_type/public', parser, str))
+    public = parser.xpath2obj('event_type/public', parser, str)
+    public = {"True": True, "False": False}.get(public, None)
     if account is not None and account.lower() != "sysop":
         public = False
     # The author will be stored in the CreationInfo object. This will be the
