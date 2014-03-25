@@ -5,7 +5,13 @@ from seishub_event_format_parser import readSeishubEventFile
 
 def convert_and_validate(input_file, output_file):
     cat = readSeishubEventFile(input_file)
-    cat.write(output_file, format="quakeml", validate=True)
+    try:
+        cat.write(output_file, format="quakeml", validate=True)
+    except:
+        output_file = "/tmp/%s" % os.path.basename(output_file)
+        cat.write(output_file, format="quakeml", validate=False)
+        msg = "Validation failed. See file: %s" % output_file
+        raise Exception(msg)
 
 
 if __name__ == "__main__":
