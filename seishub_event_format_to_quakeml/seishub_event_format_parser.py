@@ -448,7 +448,8 @@ def __toMagnitude(parser, magnitude_el, public_id):
     mag.mag, mag.mag_errors = __toFloatQuantity(parser, magnitude_el, "mag")
     # obspyck used to write variance (instead of std) in magnitude error fields
     if CURRENT_TYPE == "obspyck":
-        mag.mag_errors.uncertainty = math.sqrt(mag.mag_errors.uncertainty)
+        if mag.mag_errors.uncertainty is not None:
+            mag.mag_errors.uncertainty = math.sqrt(mag.mag_errors.uncertainty)
     mag.magnitude_type = parser.xpath2obj("type", magnitude_el)
     mag.station_count = parser.xpath2obj("stationCount", magnitude_el, int)
     mag.method_id = "%s/magnitude_method/%s" % (RESOURCE_ROOT,
@@ -724,6 +725,8 @@ def readSeishubEventFile(filename):
     # Parse the magnitudes.
     for magnitude_el in parser.xpath("magnitude"):
         magnitude = __toMagnitude(parser, magnitude_el, public_id)
+        if magnitude.mag is None:
+            continue
         event.magnitudes.append(magnitude)
     # Parse the picks. Pass the global evaluation mode (automatic, manual)
     for _i, pick_el in enumerate(parser.xpath("pick")):
