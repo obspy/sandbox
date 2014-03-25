@@ -1,4 +1,3 @@
-from obspy.core.event import validate
 import os
 
 from seishub_event_format_parser import readSeishubEventFile
