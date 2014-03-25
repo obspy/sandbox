@@ -14,7 +14,7 @@ from obspy.core import UTCDateTime, AttribDict
 from obspy.core.event import Catalog, Event, Origin, \
     Magnitude, StationMagnitude, Comment, Pick, WaveformStreamID, \
     OriginQuality, Arrival, FocalMechanism, NodalPlanes, NodalPlane, \
-    StationMagnitudeContribution, OriginUncertainty
+    StationMagnitudeContribution, OriginUncertainty, ResourceIdentifier
 from obspy.core.util.xmlwrapper import XMLParser
 from obspy.core.util import kilometer2degrees
 import os
@@ -271,7 +271,7 @@ def __toTimeQuantity(parser, element, name):
     return __toValueQuantity(parser, element, name, UTCDateTime)
 
 
-def __toOrigin(parser, origin_el, public_id):
+def __toOrigin(parser, origin_el):
     """
     Parses a given origin etree element.
 
@@ -284,7 +284,7 @@ def __toOrigin(parser, origin_el, public_id):
     global CURRENT_TYPE
 
     origin = Origin()
-    origin.resource_id = "/".join([RESOURCE_ROOT, "origin", public_id, "1"])
+    origin.resource_id = ResourceIdentifier(prefix="/".join([RESOURCE_ROOT, "origin"]))
 
     # I guess setting the program used as the method id is fine.
     origin.method_id = "%s/location_method/%s" % (RESOURCE_ROOT,
@@ -442,7 +442,7 @@ def __toOrigin(parser, origin_el, public_id):
     return origin
 
 
-def __toMagnitude(parser, magnitude_el, public_id):
+def __toMagnitude(parser, magnitude_el, origin):
     """
     Parses a given magnitude etree element.
 
@@ -454,7 +454,8 @@ def __toMagnitude(parser, magnitude_el, public_id):
     """
     global CURRENT_TYPE
     mag = Magnitude()
-    mag.resource_id = "/".join([RESOURCE_ROOT, "magnitude", public_id, "1"])
+    mag.resource_id = ResourceIdentifier(prefix="/".join([RESOURCE_ROOT, "magnitude"]))
+    mag.origin_id = origin.resource_id
     mag.mag, mag.mag_errors = __toFloatQuantity(parser, magnitude_el, "mag")
     # obspyck used to write variance (instead of std) in magnitude error fields
     if CURRENT_TYPE == "obspyck":
@@ -470,7 +471,7 @@ def __toMagnitude(parser, magnitude_el, public_id):
     return mag
 
 
-def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
+def __toStationMagnitude(parser, stat_mag_el):
     """
     Parses a given station magnitude etree element.
 
@@ -483,7 +484,7 @@ def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
     global CURRENT_TYPE
     mag = StationMagnitude()
     mag.mag, mag.mag_errors = __toFloatQuantity(parser, stat_mag_el, "mag")
-    mag.resource_id = "/".join([RESOURCE_ROOT, "station_magnitude", public_id, str(stat_mag_count)])
+    mag.resource_id = ResourceIdentifier(prefix="/".join([RESOURCE_ROOT, "station_magnitude"]))
     # Use the waveform id to store station and channel(s) in the form
     # station.[channel_1, channel_2] or station.channel in the case only one
     # channel has been used.
@@ -521,12 +522,12 @@ def __toStationMagnitude(parser, stat_mag_el, public_id, stat_mag_count):
     return mag
 
 
-def __toFocalMechanism(parser, focmec_el, public_id, focmec_number):
+def __toFocalMechanism(parser, focmec_el):
     """
     """
     global CURRENT_TYPE
     focmec = FocalMechanism()
-    focmec.resource_id = "/".join([RESOURCE_ROOT, "focal_mechanism", public_id, str(focmec_number)])
+    focmec.resource_id = ResourceIdentifier(prefix="/".join([RESOURCE_ROOT, "focal_mechanism"]))
     focmec.method_id = "%s/focal_mechanism_method/%s" % (RESOURCE_ROOT,
         parser.xpath2obj('program', focmec_el))
     if str(focmec.method_id).lower().endswith("none"):
@@ -562,11 +563,11 @@ def __toFocalMechanism(parser, focmec_el, public_id, focmec_number):
     return focmec
 
 
-def __toPick(parser, pick_el, evaluation_mode, public_id, pick_number):
+def __toPick(parser, pick_el, evaluation_mode):
     """
     """
     pick = Pick()
-    pick.resource_id = "/".join([RESOURCE_ROOT, "pick", public_id, str(pick_number)])
+    pick.resource_id = ResourceIdentifier(prefix="/".join([RESOURCE_ROOT, "pick"]))
 
     # Raise a warnings if there is a phase delay
     phase_delay = parser.xpath2obj("phase_delay", pick_el, float)
@@ -593,7 +594,7 @@ def __toPick(parser, pick_el, evaluation_mode, public_id, pick_number):
     pick.time, pick.time_errors = __toTimeQuantity(parser, pick_el, "time")
     # Picks without time are not quakeml conform
     if pick.time is None:
-        print "Pick has no time and is ignored: %s %s" % (public_id, station)
+        print "Pick has no time and is ignored: %s" % station
         return None
     pick.phase_hint = parser.xpath2obj('phaseHint', pick_el, str)
     onset = parser.xpath2obj('onset', pick_el)
@@ -630,13 +631,13 @@ def __toPick(parser, pick_el, evaluation_mode, public_id, pick_number):
     return pick
 
 
-def __toArrival(parser, pick_el, evaluation_mode, public_id, pick_number):
+def __toArrival(parser, pick_el, evaluation_mode, pick):
     """
     """
     global CURRENT_TYPE
     arrival = Arrival()
-    arrival.resource_id = "/".join([RESOURCE_ROOT, "arrival", public_id, str(pick_number)])
-    arrival.pick_id = "/".join([RESOURCE_ROOT, "pick", public_id, str(pick_number)])
+    arrival.resource_id = ResourceIdentifier(prefix="/".join([RESOURCE_ROOT, "arrival"]))
+    arrival.pick_id = pick.resource_id
     arrival.phase = parser.xpath2obj('phaseHint', pick_el)
     arrival.azimuth = parser.xpath2obj('azimuth/value', pick_el, float)
     arrival.distance = parser.xpath2obj('epi_dist/value', pick_el, float)
@@ -711,7 +712,7 @@ def readSeishubEventFile(filename):
         "creation_time": NOW}
 
     # Create the event object.
-    event = Event(resource_id="/".join([RESOURCE_ROOT, "event", public_id, "1"]),
+    event = Event(resource_id="/".join([RESOURCE_ROOT, "event", public_id]),
         creation_info=creation_info)
     # If account is None or 'sysop' and public is true, write 'public in the
     # comment, 'private' otherwise.
@@ -732,31 +733,28 @@ def readSeishubEventFile(filename):
         msg = "Only files with a single origin are currently supported"
         raise Exception(msg)
     for origin_el in parser.xpath("origin"):
-        origin = __toOrigin(parser, origin_el, public_id)
+        origin = __toOrigin(parser, origin_el)
         event.origins.append(origin)
     # Parse the magnitudes.
     for magnitude_el in parser.xpath("magnitude"):
-        magnitude = __toMagnitude(parser, magnitude_el, public_id)
+        magnitude = __toMagnitude(parser, magnitude_el, origin)
         if magnitude.mag is None:
             continue
         event.magnitudes.append(magnitude)
     # Parse the picks. Pass the global evaluation mode (automatic, manual)
-    for _i, pick_el in enumerate(parser.xpath("pick")):
-        pick = __toPick(parser, pick_el, global_evaluation_mode, public_id,
-                   _i + 1)
+    for pick_el in parser.xpath("pick"):
+        pick = __toPick(parser, pick_el, global_evaluation_mode)
         if pick is None:
             continue
         event.picks.append(pick)
-    # The arrival object gets the following things from the Seishub.pick
-    # objects
-    # arrival.time_weight = pick.phase_weight
-    # arrival.time_residual = pick.phase_res
-    # arrival.azimuth = pick.azimuth
-    # arrival.take_off_angle = pick.incident
-    # arrival.distance = hyp_dist
-    for _i, pick_el in enumerate(parser.xpath("pick")):
-        arrival = __toArrival(parser, pick_el, global_evaluation_mode,
-                public_id, _i + 1)
+        # The arrival object gets the following things from the Seishub.pick
+        # objects
+        # arrival.time_weight = pick.phase_weight
+        # arrival.time_residual = pick.phase_res
+        # arrival.azimuth = pick.azimuth
+        # arrival.take_off_angle = pick.incident
+        # arrival.distance = hyp_dist
+        arrival = __toArrival(parser, pick_el, global_evaluation_mode, pick)
         if event.origins:
             event.origins[0].arrivals.append(arrival)
 
@@ -764,9 +762,8 @@ def readSeishubEventFile(filename):
         mag.origin_id = event.origins[0].resource_id
 
     # Parse the station magnitudes.
-    for _i, stat_magnitude_el in enumerate(parser.xpath("stationMagnitude")):
-        stat_magnitude = __toStationMagnitude(parser, stat_magnitude_el,
-            public_id, _i + 1)
+    for stat_magnitude_el in parser.xpath("stationMagnitude"):
+        stat_magnitude = __toStationMagnitude(parser, stat_magnitude_el)
         event.station_magnitudes.append(stat_magnitude)
 
     for mag in event.station_magnitudes:
@@ -784,8 +781,8 @@ def readSeishubEventFile(filename):
         contrib.station_magnitude_id = stat_mag.resource_id
         event.magnitudes[0].station_magnitude_contributions.append(contrib)
 
-    for _i, foc_mec_el in enumerate(parser.xpath("focalMechanism")):
-        foc_mec = __toFocalMechanism(parser, foc_mec_el, public_id, _i + 1)
+    for foc_mec_el in parser.xpath("focalMechanism"):
+        foc_mec = __toFocalMechanism(parser, foc_mec_el)
         if foc_mec is not None:
             event.focal_mechanisms.append(foc_mec)
 
