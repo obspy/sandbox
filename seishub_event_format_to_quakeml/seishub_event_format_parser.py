@@ -16,6 +16,7 @@ from obspy.core.event import Catalog, Event, Origin, \
     OriginQuality, Arrival, FocalMechanism, NodalPlanes, NodalPlane, \
     StationMagnitudeContribution, OriginUncertainty
 from obspy.core.util.xmlwrapper import XMLParser
+from obspy.core.util import kilometer2degrees
 import os
 import math
 
@@ -350,11 +351,14 @@ def __toOrigin(parser, origin_el, public_id):
             uncert.min_horizontal_uncertainty, \
                 uncert.max_horizontal_uncertainty = \
                 sorted([origin_longitude_error, origin_latitude_error])
+            uncert.min_horizontal_uncertainty *= 1000.0
+            uncert.max_horizontal_uncertainty *= 1000.0
             uncert.preferred_description = "uncertainty ellipse"
             origin.origin_uncertainty = uncert
         elif CURRENT_TYPE == "earthworm":
             uncert = OriginUncertainty()
             uncert.horizontal_uncertainty = origin_latitude_error
+            uncert.horizontal_uncertainty *= 1000.0
             uncert.preferred_description = "horizontal uncertainty"
             origin.origin_uncertainty = uncert
         elif CURRENT_TYPE in ["seiscomp3", "toni"]:
@@ -407,6 +411,12 @@ def __toOrigin(parser, origin_el, public_id):
         float)
     median_distance = parser.xpath2obj("medianDistance", origin_quality_el,
         float)
+    if minimum_distance is not None:
+        minimum_distance = kilometer2degrees(minimum_distance)
+    if maximum_distance is not None:
+        maximum_distance = kilometer2degrees(maximum_distance)
+    if median_distance is not None:
+        median_distance = kilometer2degrees(median_distance)
 
     if associated_station_count is not None:
         origin.quality.associated_station_count = associated_station_count
@@ -630,6 +640,8 @@ def __toArrival(parser, pick_el, evaluation_mode, public_id, pick_number):
     arrival.phase = parser.xpath2obj('phaseHint', pick_el)
     arrival.azimuth = parser.xpath2obj('azimuth/value', pick_el, float)
     arrival.distance = parser.xpath2obj('epi_dist/value', pick_el, float)
+    if arrival.distance is not None:
+        arrival.distance = kilometer2degrees(arrival.distance)
     takeoff_angle, _ = __toFloatQuantity(parser, pick_el, "incident/value")
     if takeoff_angle and not math.isnan(takeoff_angle):
         arrival.takeoff_angle = takeoff_angle
