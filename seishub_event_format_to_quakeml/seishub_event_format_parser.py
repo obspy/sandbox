@@ -558,8 +558,9 @@ def __toFocalMechanism(parser, focmec_el):
         n_p.rake_errors.uncertainty = rake_uncertainty["uncertainty"]
     solution_count = parser.xpath2obj("possibleSolutionCount", focmec_el, int)
     if solution_count:
-        focmec.comments.append(Comment("Possible Solution Count: %i" %
-            solution_count))
+        focmec.comments.append(Comment(
+            force_resource_id=False, resource_id=None,
+            text="Possible Solution Count: %i" % solution_count))
     return focmec
 
 
