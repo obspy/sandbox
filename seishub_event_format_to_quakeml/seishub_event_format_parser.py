@@ -14,7 +14,8 @@ from obspy.core import UTCDateTime, AttribDict
 from obspy.core.event import Catalog, Event, Origin, \
     Magnitude, StationMagnitude, Comment, Pick, WaveformStreamID, \
     OriginQuality, Arrival, FocalMechanism, NodalPlanes, NodalPlane, \
-    StationMagnitudeContribution, OriginUncertainty, ResourceIdentifier
+    StationMagnitudeContribution, OriginUncertainty, ResourceIdentifier, \
+    Amplitude, TimeWindow
 from obspy.core.util.xmlwrapper import XMLParser
 from obspy.core.util import kilometer2degrees
 import os
@@ -564,6 +565,74 @@ def __toFocalMechanism(parser, focmec_el):
     return focmec
 
 
+def __toAmplitude(parser, el):
+    """
+    """
+    amp = Amplitude()
+    amp.resource_id = ResourceIdentifier(
+        prefix="/".join([RESOURCE_ROOT, "amplitude"]))
+
+    if CURRENT_TYPE == "obspyck":
+        amp.method_id = "%s/amplitude_method/obspyck/0.1" % RESOURCE_ROOT
+    else:
+        msg = "encountered non-obspyck amplitude!"
+        raise Exception(msg)
+
+    amp.generic_amplitude, amp.generic_amplitude_errors = \
+        __toFloatQuantity(parser, el, "genericAmplitude")
+
+    amp.unit = parser.xpath2obj('unit', el, str)
+
+    waveform = el.xpath("waveform")[0]
+    network = waveform.get("networkCode")
+    station = fix_station_name(waveform.get("stationCode"))
+    # Map some station names.
+    if station in STATION_DICT:
+        station = STATION_DICT[station]
+    if not network:
+        network = NETWORK_DICT[station]
+
+    location = waveform.get("locationCode") or ""
+    channel = waveform.get("channelCode") or ""
+    amp.waveform_id = WaveformStreamID(
+        network_code=network,
+        station_code=station,
+        channel_code=channel,
+        location_code=location)
+
+    # Amplitudes without generic_amplitude are not quakeml conform
+    if amp.generic_amplitude is None:
+        print ("Amplitude has no generic_amplitude value and is "
+               "ignored: %s" % station)
+        return None
+
+    # generate time_window
+    amp.time_window = TimeWindow()
+    t_min = parser.xpath2obj('timeWindow/reference', el, UTCDateTime)
+    t_max = t_min + parser.xpath2obj('timeWindow/end', el, float)
+    dt_abs = abs(t_max - t_min)
+    amp.time_window.reference = t_min
+    if t_min < t_max:
+        amp.time_window.begin = 0.0
+        amp.time_window.end = dt_abs
+    else:
+        amp.time_window.begin = dt_abs
+        amp.time_window.end = 0.0
+
+    # we have so far saved frequency in Hz as "period" tag
+    # use two times dt instead
+    ##amp.period = 1.0 / parser.xpath2obj('period', el, float)
+    amp.period = 2.0 * dt_abs
+
+    t = ("PGV; reference time is time of minimum amplitude. if minimum comes "
+         "before maximum, start is 0 and end is relative time of maximum. "
+         "otherwise end is 0, start is relative time of minimum.")
+    comment = Comment(force_resource_id=False, resource_id=None, text=t)
+    amp.comments.append(comment)
+
+    return amp
+
+
 def __toPick(parser, pick_el, evaluation_mode):
     """
     """
@@ -767,6 +836,12 @@ def readSeishubEventFile(filename):
     for stat_magnitude_el in parser.xpath("stationMagnitude"):
         stat_magnitude = __toStationMagnitude(parser, stat_magnitude_el)
         event.station_magnitudes.append(stat_magnitude)
+
+    # Parse the amplitudes
+    # we don't reference their id in the corresponding station magnitude,
+    # because we use one amplitude measurement for each component
+    for el in parser.xpath("stationMagnitude/amplitude"):
+        event.amplitudes.append(__toAmplitude(parser, el))
 
     for mag in event.station_magnitudes:
         mag.origin_id = event.origins[0].resource_id
