@@ -628,7 +628,7 @@ def __toPick(parser, pick_el, evaluation_mode):
     pick_weight = parser.xpath2obj('weight', pick_el, int)
     if pick_weight is not None:
         pick.extra = AttribDict()
-        pick.extra.weight = {'value': pick_weight, '_namespace': NAMESPACE}
+        pick.extra.weight = {'value': pick_weight, 'namespace': NAMESPACE}
     return pick
 
 
@@ -719,8 +719,8 @@ def readSeishubEventFile(filename):
     # If account is None or 'sysop' and public is true, write 'public in the
     # comment, 'private' otherwise.
     event.extra = AttribDict()
-    event.extra.public = {'value': public, '_namespace': NAMESPACE}
-    event.extra.evaluationMode = {'value': global_evaluation_mode, '_namespace': NAMESPACE}
+    event.extra.public = {'value': public, 'namespace': NAMESPACE}
+    event.extra.evaluationMode = {'value': global_evaluation_mode, 'namespace': NAMESPACE}
 
     event_type = parser.xpath2obj('type', parser, str)
     if event_type is not None:
