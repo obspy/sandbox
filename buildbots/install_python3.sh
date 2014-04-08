@@ -19,9 +19,11 @@ export LD_RUN_PATH=$TARGET/lib:$LD_RUN_PATH
 export PATH=$TARGET/bin:$PATH
 SRCDIR=$TARGET/src
 mkdir -p $SRCDIR
-# from now on all output to log file
+# from now on copy all output to log file
 LOG=$TARGET/build.log
-exec > $LOG 2>&1
+exec > >(tee $LOG)
+exec 2>&1
+
 
 # download sources
 cd $SRCDIR
