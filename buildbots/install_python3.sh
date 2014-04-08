@@ -46,8 +46,8 @@ pip3.3 install Cython
 
 # build NumPy and SciPy
 # NumPy < 1.7 does not compile with Python 3.3.0
-pip3.3 install numpy>=1.8
-pip3.3 install scipy>=0.13
+pip3.3 install "numpy>=1.8"
+pip3.3 install "scipy>=0.13"
 
 # build matplotlib and basemap
 pip3.3 install https://github.com/matplotlib/matplotlib/archive/v1.3.1.tar.gz
@@ -61,7 +61,7 @@ pip3.3 install https://github.com/matplotlib/basemap/archive/master.zip
 pip3.3 install sqlalchemy
 pip3.3 install lxml  # needs libxml and libxslt header packages
 pip3.3 install readline
-pip3.3 install ipython>=2.0
+pip3.3 install "ipython>=2.0"
 pip3.3 install suds-jurko
 pip3.3 install future
 pip3.3 install flake8
