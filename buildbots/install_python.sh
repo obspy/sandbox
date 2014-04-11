@@ -90,7 +90,9 @@ pip install lxml
 pip install pysqlite
 pip install readline
 pip install ipython
-pip install suds
+pip install suds-jurko
+pip install future
+pip install mock
 pip install hcluster
 pip install pyproj
 pip install http://downloads.sourceforge.net/project/mlpy/mlpy%203.5.0/mlpy-3.5.0.tar.gz
