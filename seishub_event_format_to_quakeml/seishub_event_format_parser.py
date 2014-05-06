@@ -512,6 +512,8 @@ def __toStationMagnitude(parser, stat_mag_el):
     if station in STATION_DICT:
         station = STATION_DICT[station]
     mag.waveform_id.station_code = station
+    if CURRENT_TYPE == "obspyck":
+        mag.method_id = "%s/station_magnitude_method/obspyck/1" % RESOURCE_ROOT
 
     network = parser.xpath2obj('network', stat_mag_el)
     if network is None:
@@ -540,8 +542,11 @@ def __toFocalMechanism(parser, focmec_el):
     global CURRENT_TYPE
     focmec = FocalMechanism()
     focmec.resource_id = ResourceIdentifier(prefix="/".join([RESOURCE_ROOT, "focal_mechanism"]))
-    focmec.method_id = "%s/focal_mechanism_method/%s" % (RESOURCE_ROOT,
-        parser.xpath2obj('program', focmec_el))
+    if CURRENT_TYPE == "obspyck":
+        focmec.method_id = "%s/focal_mechanism_method/focmec/1" % RESOURCE_ROOT
+    else:
+        focmec.method_id = "%s/focal_mechanism_method/%s" % (RESOURCE_ROOT,
+            parser.xpath2obj('program', focmec_el))
     if str(focmec.method_id).lower().endswith("none"):
         focmec.method_id = None
     focmec.station_polarity_count = parser.xpath2obj("stationPolarityCount",
@@ -584,7 +589,7 @@ def __toAmplitude(parser, el):
         prefix="/".join([RESOURCE_ROOT, "amplitude"]))
 
     if CURRENT_TYPE == "obspyck":
-        amp.method_id = "%s/amplitude_method/obspyck/0.1" % RESOURCE_ROOT
+        amp.method_id = "%s/amplitude_method/obspyck/1" % RESOURCE_ROOT
     else:
         msg = "encountered non-obspyck amplitude!"
         raise Exception(msg)
