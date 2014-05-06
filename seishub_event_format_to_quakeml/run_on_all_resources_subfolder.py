@@ -1,15 +1,15 @@
 import os
 
-from seishub_event_format_parser import readSeishubEventFile
+from seishub_event_format_parser import readSeishubEventFile, NSMAP
 
 
 def convert_and_validate(input_file, output_file):
     cat = readSeishubEventFile(input_file)
     try:
-        cat.write(output_file, format="quakeml", validate=True)
+        cat.write(output_file, format="quakeml", validate=True, nsmap=NSMAP)
     except:
         output_file = "/tmp/%s" % os.path.basename(output_file)
-        cat.write(output_file, format="quakeml", validate=False)
+        cat.write(output_file, format="quakeml", validate=False, nsmap=NSMAP)
         msg = "Validation failed. See file: %s" % output_file
         raise Exception(msg)
 

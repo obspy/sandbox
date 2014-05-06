@@ -20,6 +20,7 @@ from obspy.core.util.xmlwrapper import XMLParser
 from obspy.core.util import kilometer2degrees
 import os
 import math
+import warnings
 
 NOW = UTCDateTime()
 
@@ -29,7 +30,9 @@ def fix_station_name(station):
 
 RESOURCE_ROOT = "smi:de.erdbeben-in-bayern"
 
-NAMESPACE = ("edb", "http://erdbeben-in-bayern.de/xmlns/0.1")
+warnings.warn("needs branch quakeml_namespaces at least @a284148b6b6700737ffb")
+NAMESPACE = "http://erdbeben-in-bayern.de/xmlns/0.1"
+NSMAP = {"edb": NAMESPACE}
 
 STATION_DICT = {
     "MUN1": "UH2",
@@ -382,7 +385,7 @@ def __toOrigin(parser, origin_el):
     s_phase_count = parser.xpath2obj("S_usedPhaseCount", origin_quality_el,
                                      int)
     # Use both in case they are set.
-    if p_phase_count and s_phase_count:
+    if p_phase_count is not None and s_phase_count is not None:
         phase_count = p_phase_count + s_phase_count
         # Also add two Seishub element file specific elements.
         origin.quality.p_used_phase_count = p_phase_count
@@ -391,6 +394,14 @@ def __toOrigin(parser, origin_el):
     else:
         phase_count = parser.xpath2obj("usedPhaseCount",
                                        origin_quality_el, int)
+    if p_phase_count is not None:
+        origin.quality.setdefault("extra", AttribDict())
+        origin.quality.extra.usedPhaseCountP = {'value': p_phase_count,
+                                                'namespace': NAMESPACE}
+    if s_phase_count is not None:
+        origin.quality.setdefault("extra", AttribDict())
+        origin.quality.extra.usedPhaseCountS = {'value': s_phase_count,
+                                                'namespace': NAMESPACE}
     origin.quality.used_phase_count = phase_count
 
     associated_station_count = \
