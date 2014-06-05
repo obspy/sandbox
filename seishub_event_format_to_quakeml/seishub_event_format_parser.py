@@ -291,7 +291,7 @@ def __toOrigin(parser, origin_el):
     origin.resource_id = ResourceIdentifier(prefix="/".join([RESOURCE_ROOT, "origin"]))
 
     # I guess setting the program used as the method id is fine.
-    origin.method_id = "%s/location_method/%s" % (RESOURCE_ROOT,
+    origin.method_id = "%s/location_method/%s/1" % (RESOURCE_ROOT,
         parser.xpath2obj('program', origin_el))
     if str(origin.method_id).lower().endswith("none"):
         origin.method_id = None
@@ -337,7 +337,7 @@ def __toOrigin(parser, origin_el):
     if earth_mod:
         earth_mod = earth_mod.split()
         earth_mod = ",".join(earth_mod)
-        origin.earth_model_id = "%s/earth_model/%s" % (RESOURCE_ROOT,
+        origin.earth_model_id = "%s/earth_model/%s/1" % (RESOURCE_ROOT,
             earth_mod)
 
     if (origin_latitude_error is None or origin_longitude_error is None) and \
@@ -475,7 +475,7 @@ def __toMagnitude(parser, magnitude_el, origin):
             mag.mag_errors.uncertainty = math.sqrt(mag.mag_errors.uncertainty)
     mag.magnitude_type = parser.xpath2obj("type", magnitude_el)
     mag.station_count = parser.xpath2obj("stationCount", magnitude_el, int)
-    mag.method_id = "%s/magnitude_method/%s" % (RESOURCE_ROOT,
+    mag.method_id = "%s/magnitude_method/%s/1" % (RESOURCE_ROOT,
         parser.xpath2obj('program', magnitude_el))
     if str(mag.method_id).lower().endswith("none"):
         mag.method_id = None
@@ -545,7 +545,7 @@ def __toFocalMechanism(parser, focmec_el):
     if CURRENT_TYPE == "obspyck":
         focmec.method_id = "%s/focal_mechanism_method/focmec/1" % RESOURCE_ROOT
     else:
-        focmec.method_id = "%s/focal_mechanism_method/%s" % (RESOURCE_ROOT,
+        focmec.method_id = "%s/focal_mechanism_method/%s/1" % (RESOURCE_ROOT,
             parser.xpath2obj('program', focmec_el))
     if str(focmec.method_id).lower().endswith("none"):
         focmec.method_id = None
