@@ -78,7 +78,7 @@ python $VIRTUALENV_PY --system-site-packages $PYTHONDIR
 cd $GITDIR
 export MPLCONFIGDIR=$MPLCONFIGDIR
 rm $MPLCONFIGDIR/fontList.cache
-$PYTHONDIR/bin/python setup.py develop -N -U --verbose
+$PYTHONDIR/bin/python setup.py develop --verbose
 $PYTHONDIR/bin/python $GITDIR/obspy/core/scripts/runtests.py --no-flake8 --keep-images --all -r -n $DIST
 rm -rf /tmp/images_${DISTARCH}
 mv ${GITDIR}/obspy/imaging/tests/images/testrun /tmp/images_${DISTARCH}
