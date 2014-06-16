@@ -64,6 +64,14 @@ do
         rm $MPLCONFIGDIR -rf
         mkdir $MPLCONFIGDIR
         cd /tmp  # can make problems to enter schroot environment from a folder not present in the schroot
+        # update packages as root
+        SCHROOT_SESSION=$(schroot --begin-session -c $DISTARCH -u root)
+        schroot --run-session -c "$SCHROOT_SESSION" <<EOT
+aptitude update
+aptitude upgrade -y
+EOT
+        schroot -f --end-session -c "$SCHROOT_SESSION" && SCHROOT_SESSION=""
+        # run tests as normal user
         SCHROOT_SESSION=$(schroot --begin-session -c $DISTARCH)
         schroot --run-session -c "$SCHROOT_SESSION" <<EOT
 python $VIRTUALENV_PY --system-site-packages $PYTHONDIR
