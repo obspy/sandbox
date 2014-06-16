@@ -14,7 +14,7 @@ do
    esac
 done
 
-DEBUNTUS="squeeze wheezy lucid natty oneiric precise quantal raring"
+DEBUNTUS="squeeze wheezy lucid precise quantal raring saucy trusty"
 BASEDIR=/tmp/testrun
 GITDIR=$BASEDIR/git
 PYTHONDIR=$BASEDIR/python
