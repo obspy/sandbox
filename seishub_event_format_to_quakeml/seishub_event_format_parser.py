@@ -473,6 +473,7 @@ def __toMagnitude(parser, magnitude_el, origin):
     if CURRENT_TYPE == "obspyck":
         if mag.mag_errors.uncertainty is not None:
             mag.mag_errors.uncertainty = math.sqrt(mag.mag_errors.uncertainty)
+            mag.mag_errors.confidence_level = 68.3
     mag.magnitude_type = parser.xpath2obj("type", magnitude_el)
     mag.station_count = parser.xpath2obj("stationCount", magnitude_el, int)
     mag.method_id = "%s/magnitude_method/%s/1" % (RESOURCE_ROOT,
@@ -785,14 +786,21 @@ def readSeishubEventFile(filename):
     user = parser.xpath2obj('event_type/user', parser, str)
     global_evaluation_mode = parser.xpath2obj('event_type/value', parser, str)
     public = parser.xpath2obj('event_type/public', parser, str)
-    public = {"True": True, "False": False}.get(public, None)
+    public = {"True": True, "False": False,
+              "true": True, "false": False}.get(public, None)
     if account is not None and account.lower() != "sysop":
         public = False
     # The author will be stored in the CreationInfo object. This will be the
     # creation info of the event as well as on all picks.
     author = user
     if CURRENT_TYPE in ["seiscomp3", "earthworm"]:
+        public = False
         author = CURRENT_TYPE
+        global_evaluation_mode = "automatic"
+    elif CURRENT_TYPE in ["baynet", "toni"]:
+        public = True
+        author = CURRENT_TYPE
+        global_evaluation_mode = "manual"
     creation_info = {"author": author,
         "agency_id": "Erdbebendienst Bayern",
         "agency_uri": "%s/agency" % RESOURCE_ROOT,
