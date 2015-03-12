@@ -45,10 +45,16 @@ rm -f $PIDFILE
 trap cleanup EXIT
 
 
-git clone https://github.com/${GITFORK}/obspy.git $GITDIR
 wget -O $VIRTUALENV_PY 'https://raw.github.com/pypa/virtualenv/master/virtualenv.py'
+
+git clone https://github.com/${GITFORK}/obspy.git $GITDIR
 cd $GITDIR
 git checkout $GITTARGET
+if [ "$GITFORK" != "obspy" ]
+then
+    git remote add upstream git://github.com/obspy/obspy.git
+    git fetch upstream
+fi
 
 
 for DIST in $DEBUNTUS
