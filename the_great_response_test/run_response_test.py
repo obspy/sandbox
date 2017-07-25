@@ -79,8 +79,10 @@ for filename in files:
                 "abbreviation" in str(_w).lower():
             validate = False
             break
-    # Or if blockette 62 is present at stage 0.
-    if 0 in [_i.stage_sequence_number for _i in parser.blockettes.get(62, [])]:
+    # Don't validate if blockette 62 is preset. On stage 0 it must not have a
+    # blockette 58 and it also does not have one in many other cases. This
+    # cannot result in a valid StationXML file unfortunately.
+    if 62 in parser.blockettes and parser.blockettes[62]:
         validate = False
 
     print(f"Validate StationXML: {validate}")
