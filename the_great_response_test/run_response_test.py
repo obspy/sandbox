@@ -10,6 +10,7 @@ import tqdm
 
 import obspy
 from obspy.io.xseed import Parser
+from obspy.io.xseed.utils import SEEDParserException
 from obspy.core.util.testing import NamedTemporaryFile
 from obspy.signal.invsim import evalresp_for_frequencies
 
@@ -42,7 +43,11 @@ for filename in files:
 
     # Parse it with the existing ObsPy Parser object.
     a = time.time()
-    parser = Parser(str(filename))
+    try:
+        parser = Parser(str(filename))
+    except SEEDParserException:
+        print("Could not parse the SEED file. Is it invalid?")
+        continue
     b = time.time()
     print(f"Time for parsing SEED file with obspy.io.xseed: {b -a}")
 
