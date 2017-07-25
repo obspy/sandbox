@@ -180,6 +180,13 @@ for filename in files:
                           "will be skipped.")
                     continue
 
+                # Also skip responses that only have a couple of gain stages.
+                if response_from_seed and set([_i.__class__.__name__
+                        for _i in response_from_seed.response_stages]) == \
+                        {'ResponseStage'}:
+                    print("Only a couple of gain stages - will be skipped.")
+                    continue
+
                 # Loop over all units.
                 for unit in ("DISP", "VEL", "ACC"):
                     # First try evalresp - if it does not work just go to the
@@ -203,6 +210,7 @@ for filename in files:
                         print(e)
                         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
                         import pdb; pdb.set_trace()
+                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
                     # Get response from the StationXML file.
                     try:
@@ -214,6 +222,7 @@ for filename in files:
                         print(e)
                         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
                         import pdb; pdb.set_trace()
+                        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
 
                     # Last but not least, also read the RESP file with
                     # obspy.core
