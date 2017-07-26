@@ -2,7 +2,7 @@
 
 Requires Python 3.6.
 
-To use this, place any number of dataless SEED files in `./seed_files/*.seed`
+To use this, place any number of dataless SEED files in `./seed_files/*dataless`
 and run
 
 ```bash
